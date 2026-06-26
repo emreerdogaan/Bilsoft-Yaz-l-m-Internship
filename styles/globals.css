@@ -1,0 +1,163 @@
+/* Tailwind v4 kütüphanesini import ettim */
+@import "tailwindcss";
+
+/* 
+  Bilsoft kurumsal renk paletini buraya kaydettim.
+  Tailwind v4'te @theme içinde tanımladığımız değişkenleri direkt class olarak (örn: text-brand-blue) kullanabiliyoruz.
+*/
+@theme {
+  /* Font tanımı */
+  --font-sans: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+
+  /* Kurumsal Logo Renkleri */
+  --color-brand-blue: #023E8A;    /* Mavi */
+  --color-brand-orange: #F48220;  /* Turuncu */
+  --color-brand-black: #010109;   /* Siyah */
+
+  /* Kılavuzdaki mavi tonları */
+  --color-primary-50: #E5F0FF;
+  --color-primary-100: #B0D2FE;
+  --color-primary-200: #7CB4FD;
+  --color-primary-300: #509AFF;
+  --color-primary-400: #0062E0;
+  --color-primary-500: #0055C7;
+  --color-primary-600: #003B95;
+  --color-primary-700: #02387E;
+  --color-primary-800: #023374;
+  --color-primary-900: #011F4B;
+
+  /* Kılavuzdaki turuncu tonları */
+  --color-orange-50: #FFF4D8;
+  --color-orange-100: #FFEFC7;
+  --color-orange-200: #FEE2AB;
+  --color-orange-300: #FFD583;
+  --color-orange-400: #F79D4F;
+  --color-orange-500: #F6943F;
+  --color-orange-600: #F48220;
+  --color-orange-700: #E16F0B;
+  --color-orange-800: #A95308;
+
+  /* Kılavuzdaki gri tonları (yazılar ve çerçeveler için) */
+  --color-neutral-50: #FFFFFF;
+  --color-neutral-100: #F3F3F4;
+  --color-neutral-200: #E4E4E7;
+  --color-neutral-300: #A6AAB4;
+  --color-neutral-400: #808392;
+  --color-neutral-500: #616371;
+  --color-neutral-600: #494D5F;
+  --color-neutral-700: #28283A;
+  --color-neutral-800: #1D1F2A;
+  --color-neutral-900: #010109;
+
+  /* Kılavuzdaki yardımcı turkuaz tonları */
+  --color-teal-50: #CFF3FA;
+  --color-teal-100: #9DE2E5;
+  --color-teal-200: #6DD4D8;
+  --color-teal-300: #56CCCC;
+  --color-teal-400: #01A3AE;
+  --color-teal-500: #01A3AE;
+  --color-teal-600: #007D8C;
+  --color-teal-700: #02576A;
+  --color-teal-800: #005962;
+  --color-teal-900: #00474F;
+
+  /* Kılavuzdaki yardımcı mor tonları */
+  --color-purple-50: #EEE0FF;
+  --color-purple-100: #DABAFF;
+  --color-purple-200: #CFADF7;
+  --color-purple-300: #BC87FF;
+  --color-purple-400: #AC6FF1;
+  --color-purple-500: #9346ED;
+  --color-purple-600: #5A11B0;
+  --color-purple-700: #410C7E;
+  --color-purple-800: #340A65;
+  --color-purple-900: #27074C;
+}
+
+/* Temel body ayarlarımız */
+body {
+  background-color: var(--color-neutral-50);
+  color: var(--color-neutral-800);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+/* 
+  Markdown'dan gelen yazıları (p, h1, h2, ul vb.) düzgün göstermek için 
+  buraya özel stil sınıfları ekledim.
+*/
+.prose {
+  line-height: 1.75;
+}
+
+.prose h1 {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: var(--color-neutral-900);
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.prose h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-neutral-900);
+  margin-top: 1.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.prose h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-neutral-900);
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.prose p {
+  margin-bottom: 1.25rem;
+  color: var(--color-neutral-700);
+}
+
+.prose ul, .prose ol {
+  margin-left: 1.5rem;
+  margin-bottom: 1.25rem;
+  list-style-position: outside;
+}
+
+.prose ul {
+  list-style-type: disc;
+}
+
+.prose ol {
+  list-style-type: decimal;
+}
+
+.prose li {
+  margin-bottom: 0.5rem;
+  color: var(--color-neutral-700);
+}
+
+.prose blockquote {
+  border-left: 4px solid var(--color-brand-orange);
+  padding-left: 1rem;
+  font-style: italic;
+  color: var(--color-neutral-600);
+  margin: 1.5rem 0;
+}
+
+.prose a {
+  color: var(--color-brand-blue);
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.prose a:hover {
+  color: var(--color-brand-orange);
+}
+
+.prose img {
+  border-radius: 0.5rem;
+  margin: 2rem auto;
+  max-width: 100%;
+}
