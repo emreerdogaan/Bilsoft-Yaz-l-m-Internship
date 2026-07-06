@@ -1,10 +1,12 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Head from "next/head";
+import { useRouter } from "next/router";
 import Layout from "@/components/Layout";
 import BlogCard from "@/components/BlogCard";
 import { getSortedPostsData } from "@/utils/posts";
 
-// getStaticProps ile markdown dosyalarını build sırasında bir kez okuyup sayfaya gönderiyoruz
+// getStaticProps ile markdown dosyalarını derleme (build) sırasında bir kez okuyup sayfaya gönderiyoruz.
+// Yeni başlayanlar için: Next.js'in statik site oluşturma (SSG) özelliğidir. Sayfa daha hızlı yüklenir.
 export async function getStaticProps() {
   const allPosts = getSortedPostsData();
   return {
@@ -15,11 +17,28 @@ export async function getStaticProps() {
 }
 
 export default function Home({ allPosts }) {
-  // Filtreleme için seçilen tür ve kategoriyi state'te tutuyorum
-  const [selectedType, setSelectedType] = useState("all"); // 'all' | 'blog' | 'duyuru'
+  // useRouter: Sayfa adresindeki (URL) parametreleri okumak veya sayfalar arası geçiş yapmak için kullanılan Next.js kancasıdır (hook).
+  const router = useRouter();
+
+  // useState: React'te sayfa içindeki dinamik verileri (durumları) yönetmek için kullanılır.
+  // selectedType: Şu an hangi türün listelendiğini tutar ('all' = hepsi, 'blog' = yazılar, 'duyuru' = duyurular).
+  const [selectedType, setSelectedType] = useState("all"); 
+  // selectedCategory: Şu an hangi kategorinin seçili olduğunu tutar (Örn: 'E-Dönüşüm', 'Kampanya' vb.).
   const [selectedCategory, setSelectedCategory] = useState("all");
 
-  // 1. Yazıların içindeki kategorileri çekip benzersiz bir liste oluşturuyoruz
+  // useEffect: Belirli değişkenler değiştiğinde (burada URL'deki ?type= değeri) otomatik çalışan fonksiyon bloğudur.
+  // Navbar'daki "Yazılar" veya "Duyurular" linklerine tıklandığında URL'e eklenen (?type=blog vb.) parametreyi algılar
+  // ve anasayfadaki filtre state'ini güncelleyerek ilgili yazıları listeler.
+  useEffect(() => {
+    if (router.query.type) {
+      setSelectedType(router.query.type);
+    } else {
+      setSelectedType("all");
+    }
+  }, [router.query.type]);
+
+  // useMemo: Performans optimizasyonu için kullanılır. allPosts değişmediği sürece kategorileri tekrar tekrar hesaplamaz.
+  // 1. Yazıların içindeki kategorileri çekip Set nesnesi kullanarak benzersiz (yinelenmeyen) bir liste oluşturuyoruz.
   const categories = useMemo(() => {
     const list = new Set();
     allPosts.forEach((post) => {
@@ -30,12 +49,14 @@ export default function Home({ allPosts }) {
     return ["all", ...Array.from(list)];
   }, [allPosts]);
 
-  // 2. Seçilen tür (blog, duyuru) veya kategoriye göre yazıları süzüyoruz
+  // 2. Seçilen tür (blog, duyuru) veya kategoriye göre yazıları süzüyoruz.
+  // Taslak durumundaki (status === "taslak") yazıları ziyaretçilere göstermiyoruz.
   const filteredPosts = useMemo(() => {
     return allPosts.filter((post) => {
       const typeMatch = selectedType === "all" || post.type === selectedType;
       const categoryMatch = selectedCategory === "all" || post.category === selectedCategory;
-      return typeMatch && categoryMatch;
+      const statusMatch = post.status !== "taslak";
+      return typeMatch && categoryMatch && statusMatch;
     });
   }, [allPosts, selectedType, selectedCategory]);
 

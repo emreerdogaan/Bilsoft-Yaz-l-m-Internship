@@ -4,47 +4,83 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 
 export default function AdminPanel() {
-  const router = useRouter();
+  const router = useRouter(); // Next.js yönlendirmeleri için kullanılır.
   
-  // Oturum Durumları
+  // ==========================================
+  // OTURUM (AUTH) DURUM STATE'LERİ
+  // ==========================================
+  // isLoggedIn: Kullanıcının giriş yapıp yapmadığını tutan mantıksal (boolean) durumdur.
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // loginUsername: Giriş formundaki Kullanıcı Adı girdisini tutar.
   const [loginUsername, setLoginUsername] = useState("");
+  // loginPassword: Giriş formundaki Şifre girdisini tutar.
   const [loginPassword, setLoginPassword] = useState("");
+  // loginError: Hatalı giriş yapıldığında ekranda gösterilecek hata mesajını tutar.
   const [loginError, setLoginError] = useState("");
 
-  // Arayüz Görünüm Sekmesi ('dashboard' | 'blogs' | 'duyurular' | 'form')
+  // ==========================================
+  // PANEL ARAYÜZÜ GÖRÜNÜM STATE'LERİ
+  // ==========================================
+  // activeTab: Admin panelinde hangi sekmenin aktif olduğunu kontrol eder.
+  // 'dashboard' = Gösterge paneli, 'blogs' = blog listesi, 'duyurular' = duyuru listesi, 'form' = ekleme/düzenleme formu.
   const [activeTab, setActiveTab] = useState("dashboard");
 
-  // Yazı verileri (API'den çekilecek)
+  // ==========================================
+  // VERİ VE YÜKLENİYOR STATE'LERİ
+  // ==========================================
+  // posts: Sunucudan/API'den gelen tüm blog ve duyuru yazılarını saklayan dizi (array).
   const [posts, setPosts] = useState([]);
+  // isLoading: API istekleri sırasında arka planda işlem yapıldığını ve yükleme animasyonunun gösterilmesini kontrol eder.
   const [isLoading, setIsLoading] = useState(false);
 
-  // Form Durumları (Yeni ekleme veya düzenleme için)
+  // ==========================================
+  // FORM / İÇERİK YÖNETİM STATE'LERİ
+  // ==========================================
+  // isEditing: Formun "Yeni Ekleme" modunda mı yoksa mevcut yazıyı "Düzenleme" modunda mı olduğunu belirtir.
   const [isEditing, setIsEditing] = useState(false);
+  // editSlug: Düzenlenen yazının benzersiz URL kimliğini (slug) saklar.
   const [editSlug, setEditSlug] = useState("");
+  // formTitle: Formdaki başlık alanını tutar.
   const [formTitle, setFormTitle] = useState("");
+  // formType: İçeriğin türünü tutar ('blog' yazısı mı yoksa 'duyuru' mu).
   const [formType, setFormType] = useState("blog");
+  // formCategory: İçeriğin ait olduğu kategoriyi tutar.
   const [formCategory, setFormCategory] = useState("Genel");
+  // formAuthor: İçeriği yazan editörün adını tutar.
   const [formAuthor, setFormAuthor] = useState("Admin");
+  // formExcerpt: Makale listelerinde görünecek olan kısa özet metnidir.
   const [formExcerpt, setFormExcerpt] = useState("");
+  // formContent: Makalenin markdown formatındaki ana metnini tutar.
   const [formContent, setFormContent] = useState("");
+  // formTags: Virgülle ayrılmış etiketleri (tags) girdi olarak tutar.
   const [formTags, setFormTags] = useState("");
+  // formImage: Öne çıkarılan görselin URL'ini tutar.
   const [formImage, setFormImage] = useState("");
+  // formReadTime: Tahmini okuma süresi bilgisini tutar (Örn: "4 dk okuma").
   const [formReadTime, setFormReadTime] = useState("3 dk okuma");
-  const [formDate, setFormDate] = useState(""); // Düzenlemede orijinal tarihi korumak için
+  // formDate: Bir yazı düzenlenirken, o yazının ilk oluşturulma tarihini korumak için kullanılır.
+  const [formDate, setFormDate] = useState("");
+  // formStatus: İçeriğin yayın durumunu tutar ('yayinlandi' veya 'taslak').
+  const [formStatus, setFormStatus] = useState("yayinlandi");
 
+  // notification: Ekranda geçici olarak beliren yeşil (başarılı) veya kırmızı (hata) uyarı balonunun durumudur.
   const [notification, setNotification] = useState({ show: false, message: "", type: "success" });
 
-  // Sayfa yüklendiğinde oturum kontrolü yap
+  // ==========================================
+  // YARDIMCI FONKSİYONLAR VE HOOK'LAR
+  // ==========================================
+
+  // useEffect hook'u sayfa ilk açıldığında otomatik olarak çalışır.
+  // Tarayıcı hafızasını (localStorage) kontrol ederek daha önce giriş yapmış bir kullanıcı olup olmadığını doğrular.
   useEffect(() => {
     const token = localStorage.getItem("admin_token");
     if (token === "logged_in") {
       setIsLoggedIn(true);
-      fetchPosts();
+      fetchPosts(); // Giriş başarılıysa yazıları veritabanından/klasörden çeker.
     }
   }, []);
 
-  // Bildirim gösterme fonksiyonu
+  // Bildirim (Alert) gösterip 4 saniye sonra otomatik olarak kapatan fonksiyon.
   const showNotification = (message, type = "success") => {
     setNotification({ show: true, message, type });
     setTimeout(() => {
@@ -52,29 +88,31 @@ export default function AdminPanel() {
     }, 4000);
   };
 
-  // Yazıları API'den çekme
+  // fetchPosts: API rotamız olan "/api/posts" adresine GET isteği atarak
+  // sunucudaki tüm markdown dosyalarından üretilen yazıları çeker ve 'posts' state'ine kaydeder.
   const fetchPosts = async () => {
     setIsLoading(true);
     try {
       const res = await fetch("/api/posts");
       if (res.ok) {
         const data = await res.json();
-        setPosts(data);
+        setPosts(data); // Çekilen veriyi state'e yazıyoruz.
       } else {
         showNotification("Yazılar yüklenirken bir hata oluştu.", "error");
       }
     } catch (err) {
       showNotification("Bağlantı hatası oluştu.", "error");
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Yükleniyor durumunu kapatıyoruz.
     }
   };
 
-  // Giriş Yapma İşlemi
+  // Giriş Yapma İşlemi: Form gönderildiğinde (submit) tetiklenir.
+  // Kullanıcı adı 'admin' ve şifre 'admin123' ise giriş başarılı sayılır.
   const handleLogin = (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Sayfanın yeniden yüklenmesini (default davranış) engeller.
     if (loginUsername === "admin" && loginPassword === "admin123") {
-      localStorage.setItem("admin_token", "logged_in");
+      localStorage.setItem("admin_token", "logged_in"); // Giriş bilgisini tarayıcı hafızasına kaydeder.
       setIsLoggedIn(true);
       setLoginError("");
       fetchPosts();
@@ -84,14 +122,14 @@ export default function AdminPanel() {
     }
   };
 
-  // Çıkış Yapma İşlemi
+  // Çıkış Yapma İşlemi: Tarayıcı hafızasındaki token'ı siler ve kullanıcıyı giriş sayfasına yönlendirir.
   const handleLogout = () => {
     localStorage.removeItem("admin_token");
     setIsLoggedIn(false);
     showNotification("Oturum kapatıldı.");
   };
 
-  // Form Sıfırlama
+  // Form Sıfırlama: İçerik ekleme/düzenleme formundaki tüm alanları başlangıç değerlerine döndürür.
   const resetForm = () => {
     setIsEditing(false);
     setEditSlug("");
@@ -105,9 +143,11 @@ export default function AdminPanel() {
     setFormImage("");
     setFormReadTime("3 dk okuma");
     setFormDate("");
+    setFormStatus("yayinlandi");
   };
 
-  // Düzenleme Modunu Açma
+  // Düzenleme Modunu Açma: Kullanıcı listeden bir yazının "Düzenle" butonuna bastığında çalışır.
+  // İlgili yazının bilgilerini form alanlarına doldurur ve API'den yazının asıl markdown gövde içeriğini çeker.
   const handleEditClick = (post) => {
     setIsEditing(true);
     setEditSlug(post.slug);
@@ -116,28 +156,30 @@ export default function AdminPanel() {
     setFormCategory(post.category || "Genel");
     setFormAuthor(post.author || "Admin");
     setFormExcerpt(post.excerpt || "");
-    setFormContent(""); // Önce temizle, API'den yüklenene kadar boş kalsın
+    setFormContent(""); // API'den veri gelene kadar kullanıcıya boş gösteriyoruz.
     setFormTags(post.tags ? post.tags.join(", ") : "");
     setFormImage(post.featuredImage || "");
     setFormReadTime(post.readTime || "3 dk okuma");
     setFormDate(post.date || "");
+    setFormStatus(post.status || "yayinlandi");
     
-    // Form sekmesini aç
+    // Form sekmesini görünür kıl
     setActiveTab("form");
     
-    // Düzenleme yapmak için içeriğin ham markdown metnini çekiyoruz
+    // API'den ilgili slug değerine ait markdown ham metnini (content) çeken fonksiyonu tetikler.
     fetchPostDetail(post.slug);
   };
 
+  // fetchPostDetail: Düzenlenecek olan yazının tüm markdown gövde içeriğini sunucudan çeker.
   const fetchPostDetail = async (slug) => {
     setIsLoading(true);
     try {
       const res = await fetch(`/api/posts?slug=${slug}`, {
-        headers: { "Authorization": "Bearer admin-token" }
+        headers: { "Authorization": "Bearer admin-token" } // Basit güvenlik doğrulaması
       });
       if (res.ok) {
         const data = await res.json();
-        setFormContent(data.content || "");
+        setFormContent(data.content || ""); // Markdown metnini editör alanına yazıyoruz.
       } else {
         showNotification("Yazı içeriği yüklenemedi.", "error");
       }
@@ -149,7 +191,8 @@ export default function AdminPanel() {
     }
   };
 
-  // Form Kaydetme / Güncelleme İşlemi
+  // Form Kaydetme / Güncelleme İşlemi (POST veya PUT)
+  // Yeni yazı eklenirken HTTP POST, mevcut yazı güncellenirken HTTP PUT isteği gönderilir.
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     if (!formTitle || !formContent) {
@@ -157,20 +200,24 @@ export default function AdminPanel() {
       return;
     }
 
+    // API'ye gönderilecek veri paketi (payload)
     const payload = {
       slug: editSlug,
       title: formTitle,
       excerpt: formExcerpt,
       author: formAuthor,
       category: formCategory,
+      // Etiketleri virgüllerden bölüp diziye (array) çeviriyor ve gereksiz boşlukları temizliyoruz.
       tags: formTags.split(",").map(t => t.trim()).filter(t => t),
       type: formType,
       featuredImage: formImage,
       readTime: formReadTime,
       content: formContent,
-      date: formDate // Düzenlemede var olan tarih korunur
+      date: formDate,
+      status: formStatus
     };
 
+    // Eğer düzenleme modundaysak PUT (güncelleme), yeni ekliyorsak POST (oluşturma) metodunu seçiyoruz.
     const method = isEditing ? "PUT" : "POST";
 
     try {
@@ -180,15 +227,15 @@ export default function AdminPanel() {
           "Content-Type": "application/json",
           "Authorization": "Bearer admin-token"
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload) // JSON verisine dönüştürüp gönderiyoruz.
       });
 
       const result = await res.json();
       if (res.ok) {
         showNotification(isEditing ? "İçerik başarıyla güncellendi!" : "Yeni içerik başarıyla eklendi!");
-        resetForm();
-        fetchPosts();
-        setActiveTab("dashboard");
+        resetForm(); // Formu sıfırla
+        fetchPosts(); // Listeyi yenile
+        setActiveTab("dashboard"); // Dashboard'a geri dön
       } else {
         showNotification(result.message || "İşlem başarısız oldu.", "error");
       }
@@ -197,7 +244,7 @@ export default function AdminPanel() {
     }
   };
 
-  // Silme İşlemi
+  // Silme İşlemi (DELETE): Kullanıcı sil butonuna bastığında tarayıcı onayı ister ve API'ye DELETE isteği atar.
   const handleDeleteClick = async (slug) => {
     if (!window.confirm("Bu yazıyı kalıcı olarak silmek istediğinize emin misiniz?")) {
       return;
@@ -214,7 +261,7 @@ export default function AdminPanel() {
       const result = await res.json();
       if (res.ok) {
         showNotification("Yazı başarıyla silindi.");
-        fetchPosts();
+        fetchPosts(); // Listeyi yeniliyoruz
       } else {
         showNotification(result.message || "Silme işlemi başarısız.", "error");
       }
@@ -223,11 +270,12 @@ export default function AdminPanel() {
     }
   };
 
-  // İstatistikleri hesapla
+  // İstatistikleri Hesaplama: Ekrandaki özet bilgileri posts dizisini filtreleyerek dinamik üretir.
   const stats = {
     total: posts.length,
     blogs: posts.filter(p => p.type === "blog").length,
     announcements: posts.filter(p => p.type === "duyuru").length,
+    // Kategorileri tekilleştirip sayısını bulmak için Set kullanıyoruz.
     categories: new Set(posts.map(p => p.category).filter(Boolean)).size
   };
 
@@ -453,6 +501,7 @@ export default function AdminPanel() {
                       <th className="p-4">Tür</th>
                       <th className="p-4">Kategori</th>
                       <th className="p-4">Tarih</th>
+                      <th className="p-4">Durum</th>
                       <th className="p-4 pr-6 text-right">İşlemler</th>
                     </tr>
                   </thead>
@@ -471,6 +520,15 @@ export default function AdminPanel() {
                         </td>
                         <td className="p-4 text-neutral-500 font-medium">{post.category}</td>
                         <td className="p-4 text-neutral-400 text-xs">{post.date}</td>
+                        <td className="p-4">
+                          <span className={`text-xs font-semibold px-2 py-1 rounded-md border ${
+                            post.status === "taslak"
+                              ? "bg-neutral-100 text-neutral-500 border-neutral-200"
+                              : "bg-green-50 text-green-700 border-green-200"
+                          }`}>
+                            {post.status === "taslak" ? "Taslak" : "Yayında"}
+                          </span>
+                        </td>
                         <td className="p-4 pr-6 text-right space-x-2">
                           <button
                             onClick={() => handleEditClick(post)}
@@ -489,7 +547,7 @@ export default function AdminPanel() {
                     ))}
                     {posts.length === 0 && (
                       <tr>
-                        <td colSpan="5" className="p-8 text-center text-neutral-400 font-medium">Henüz içerik eklenmemiş.</td>
+                        <td colSpan="6" className="p-8 text-center text-neutral-400 font-medium">Henüz içerik eklenmemiş.</td>
                       </tr>
                     )}
                   </tbody>
@@ -520,6 +578,7 @@ export default function AdminPanel() {
                       <th className="p-4">Kategori</th>
                       <th className="p-4">Tarih</th>
                       <th className="p-4">Yazar</th>
+                      <th className="p-4">Durum</th>
                       <th className="p-4 pr-6 text-right">İşlemler</th>
                     </tr>
                   </thead>
@@ -532,6 +591,15 @@ export default function AdminPanel() {
                           <td className="p-4 text-neutral-500 font-medium">{post.category}</td>
                           <td className="p-4 text-neutral-400 text-xs">{post.date}</td>
                           <td className="p-4 text-neutral-500 text-xs">{post.author}</td>
+                          <td className="p-4">
+                            <span className={`text-xs font-semibold px-2 py-1 rounded-md border ${
+                              post.status === "taslak"
+                                ? "bg-neutral-100 text-neutral-500 border-neutral-200"
+                                : "bg-green-50 text-green-700 border-green-200"
+                            }`}>
+                              {post.status === "taslak" ? "Taslak" : "Yayında"}
+                            </span>
+                          </td>
                           <td className="p-4 pr-6 text-right space-x-2">
                             <button
                               onClick={() => handleEditClick(post)}
@@ -550,7 +618,7 @@ export default function AdminPanel() {
                       ))}
                     {posts.filter(p => activeTab === "blogs" ? p.type !== "duyuru" : p.type === "duyuru").length === 0 && (
                       <tr>
-                        <td colSpan="5" className="p-8 text-center text-neutral-400 font-medium">Bu türde hiçbir içerik bulunamadı.</td>
+                        <td colSpan="6" className="p-8 text-center text-neutral-400 font-medium">Bu türde hiçbir içerik bulunamadı.</td>
                       </tr>
                     )}
                   </tbody>
@@ -601,6 +669,19 @@ export default function AdminPanel() {
                   >
                     <option value="blog">Blog Yazısı</option>
                     <option value="duyuru">Duyuru / Kampanya</option>
+                  </select>
+                </div>
+
+                {/* Yayın Durumu */}
+                <div>
+                  <label className="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2">Yayın Durumu</label>
+                  <select
+                    value={formStatus}
+                    onChange={(e) => setFormStatus(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue text-sm transition-all"
+                  >
+                    <option value="yayinlandi">Yayınla (Herkese Açık)</option>
+                    <option value="taslak">Taslak Olarak Kaydet (Gizli)</option>
                   </select>
                 </div>
 

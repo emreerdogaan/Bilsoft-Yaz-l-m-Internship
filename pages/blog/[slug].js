@@ -81,6 +81,17 @@ export default function BlogPost({ postData }) {
           Blog Ana Sayfa
         </Link>
 
+        {/* Taslak Bildirim Bannerı */}
+        {postData.status === "taslak" && (
+          <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-xl p-4 mb-8 text-sm flex items-center gap-3">
+            <span className="text-xl">⚠️</span>
+            <div>
+              <p className="font-bold">Taslak İçerik</p>
+              <p className="text-xs text-yellow-700 mt-0.5">Bu içerik şu anda taslak olarak kaydedilmiştir ve ana sayfada ziyaretçilere gösterilmemektedir.</p>
+            </div>
+          </div>
+        )}
+
         {/* Başlık, açıklama ve yazar bölümü */}
         <header className="border-b border-neutral-200 pb-8 mb-8 space-y-5">
           <span className={`text-xs font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full inline-block ${categoryColor}`}>
