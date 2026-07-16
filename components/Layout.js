@@ -3,21 +3,16 @@ import Footer from "./Footer";
 
 export default function Layout({ children }) {
   return (
-    // min-h-screen kullanarak sayfa içeriği az olsa bile footer'ın en alta yapışmasını sağladım
+    // Sticky Footer Layout: CSS Flexbox (flex flex-col min-h-screen) ve flex-grow kuralları kullanılarak, 
+    // sayfa içeriği dikey boyuttan kısa olsa bile Footer'ın viewport'un en altında kalması sağlanır.
     <div className="flex flex-col min-h-screen bg-neutral-100/50">
-      
-      {/* Sayfa başlığı (Navbar) */}
       <Navbar />
       
-      {/* Dinamik gelen sayfa içeriği */}
-      {/* flex-grow ekledim ki orta kısım uzasın, footer aşağıda kalsın */}
       <main className="flex-grow">
         {children}
       </main>
       
-      {/* Sayfa altlığı (Footer) */}
       <Footer />
-      
     </div>
   );
 }

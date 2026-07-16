@@ -2,6 +2,13 @@
 @import "tailwindcss";
 
 /* 
+  Karanlık mod (Dark Mode) için özel bir seçici tanımladım.
+  Böylece HTML etiketine "dark" sınıfı eklendiğinde "dark:" ile başlayan bütün stiller aktif olacak.
+  Bunu Tailwind v4 standartlarına göre @custom-variant kullanarak yapıyoruz.
+*/
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* 
   Bilsoft kurumsal renk paletini buraya kaydettim.
   Tailwind v4'te @theme içinde tanımladığımız değişkenleri direkt class olarak (örn: text-brand-blue) kullanabiliyoruz.
 */
@@ -161,3 +168,33 @@ body {
   margin: 2rem auto;
   max-width: 100%;
 }
+
+/* 
+  Karanlık mod aktif olduğunda yazı detay sayfasındaki 
+  Markdown yazılarının (prose) renklerinin de değişmesi gerekiyor.
+  Burada HTML'de .dark sınıfı varken başlıkları ve paragrafları açık renklere boyadım.
+*/
+.dark .prose h1,
+.dark .prose h2,
+.dark .prose h3 {
+  color: var(--color-neutral-100);
+}
+
+.dark .prose p,
+.dark .prose li {
+  color: var(--color-neutral-300);
+}
+
+.dark .prose blockquote {
+  color: var(--color-neutral-400);
+  border-left-color: var(--color-brand-orange);
+}
+
+.dark .prose a {
+  color: var(--color-brand-orange);
+}
+
+.dark .prose a:hover {
+  color: var(--color-orange-300);
+}
+

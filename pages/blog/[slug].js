@@ -4,16 +4,16 @@ import { useRouter } from "next/router";
 import Layout from "@/components/Layout";
 import { getAllPostSlugs, getPostData } from "@/utils/posts";
 
-// getStaticPaths ile hangi sayfaların (slug'ların) oluşturulacağını Next.js'e bildiriyoruz
+// getStaticPaths: Dinamik blog detay sayfalarının (slug'ların) listesini derleme aşamasında Next.js'e bildirir.
 export async function getStaticPaths() {
   const paths = getAllPostSlugs();
   return {
     paths,
-    fallback: false, // Eşleşmeyen slug durumlarında 404 sayfasına yönlendirir
+    fallback: false, // Olmayan bir yazı isteğinde doğrudan 404 sayfasına yönlendirir.
   };
 }
 
-// getStaticProps ile ilgili yazının verilerini çekiyoruz
+// getStaticProps: slug parametresine göre ilgili markdown dosyasının verilerini derleme aşamasında okur.
 export async function getStaticProps({ params }) {
   const postData = await getPostData(params.slug);
   return {
@@ -26,43 +26,40 @@ export async function getStaticProps({ params }) {
 export default function BlogPost({ postData }) {
   const router = useRouter();
 
-  // Sayfa yükleniyorsa basit bir yükleniyor yazısı gösterdik
   if (router.isFallback) {
-    return <div className="text-center py-20 font-semibold text-neutral-500">Yükleniyor...</div>;
+    return <div className="text-center py-20 font-semibold text-neutral-500 dark:text-neutral-400">Yükleniyor...</div>;
   }
 
   const { title, date, author, category, tags, contentHtml, excerpt, type, readTime, slug } = postData;
 
-  // Paylaşım butonları için sitenin o anki url'ini ve başlığını alıyoruz
   const pageUrl = typeof window !== "undefined" ? window.location.href : `https://www.bilsoft.com/blog/${slug}`;
   const shareText = encodeURIComponent(title);
 
-  // Butona tıklayınca sayfa linkini panoya kopyalayan fonksiyon
+  // Butona tıklandığında sayfa linkini panoya kopyalar.
   const copyLinkToClipboard = () => {
     navigator.clipboard.writeText(pageUrl);
     alert("Yazı bağlantısı panoya kopyalandı!");
   };
 
-  // Yazı türüne göre etiket rengi (Duyuru turuncu, Blog mavi)
   const isAnnouncement = type === "duyuru";
-  const categoryColor = isAnnouncement ? "bg-orange-50 text-brand-orange border border-orange-200" : "bg-primary-50 text-brand-blue border border-primary-200";
+  const categoryColor = isAnnouncement 
+    ? "bg-orange-50 text-brand-orange border border-orange-200 dark:bg-orange-950/40 dark:text-orange-400 dark:border-orange-900/60" 
+    : "bg-primary-50 text-brand-blue border border-primary-200 dark:bg-primary-950/40 dark:text-primary-300 dark:border-primary-900/60";
 
   return (
     <Layout>
-      {/* Arama motorları ve sosyal medya paylaşımları için meta etiketleri */}
+      {/* SEO ve Sosyal Paylaşım Kartları için Meta Etiketleri */}
       <Head>
         <title>{`${title} | Bilsoft Yazılım Blog`}</title>
         <meta name="description" content={excerpt} />
         <meta name="keywords" content={tags ? tags.join(", ") : "bilsoft, blog, muhasebe"} />
         
-        {/* Facebook ve Whatsapp önizleme kartları için */}
         <meta property="og:type" content="article" />
         <meta property="og:title" content={`${title} | Bilsoft Yazılım`} />
         <meta property="og:description" content={excerpt} />
         <meta property="og:url" content={pageUrl} />
         <meta property="og:site_name" content="Bilsoft Yazılım" />
         
-        {/* Twitter/X kart önizlemesi için */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={excerpt} />
@@ -70,10 +67,9 @@ export default function BlogPost({ postData }) {
 
       <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
         
-        {/* Ana sayfaya dönen geri butonu */}
         <Link 
           href="/" 
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-neutral-500 hover:text-brand-blue transition-colors mb-8 group"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-neutral-500 hover:text-brand-blue dark:text-neutral-400 dark:hover:text-brand-orange transition-colors mb-8 group"
         >
           <svg className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
@@ -81,44 +77,41 @@ export default function BlogPost({ postData }) {
           Blog Ana Sayfa
         </Link>
 
-        {/* Taslak Bildirim Bannerı */}
         {postData.status === "taslak" && (
-          <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-xl p-4 mb-8 text-sm flex items-center gap-3">
+          <div className="bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-900/50 text-yellow-800 dark:text-yellow-400 rounded-xl p-4 mb-8 text-sm flex items-center gap-3">
             <span className="text-xl">⚠️</span>
             <div>
               <p className="font-bold">Taslak İçerik</p>
-              <p className="text-xs text-yellow-700 mt-0.5">Bu içerik şu anda taslak olarak kaydedilmiştir ve ana sayfada ziyaretçilere gösterilmemektedir.</p>
+              <p className="text-xs text-yellow-700 dark:text-yellow-500 mt-0.5">Bu içerik şu anda taslak olarak kaydedilmiştir ve ana sayfada ziyaretçilere gösterilmemektedir.</p>
             </div>
           </div>
         )}
 
-        {/* Başlık, açıklama ve yazar bölümü */}
-        <header className="border-b border-neutral-200 pb-8 mb-8 space-y-5">
+        <header className="border-b border-neutral-200 dark:border-neutral-800 pb-8 mb-8 space-y-5">
           <span className={`text-xs font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full inline-block ${categoryColor}`}>
             {category || (isAnnouncement ? "Duyuru" : "Blog")}
           </span>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-neutral-900 tracking-tight leading-tight">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-neutral-900 dark:text-neutral-100 tracking-tight leading-tight">
             {title}
           </h1>
-          <p className="text-base sm:text-lg text-neutral-500 font-medium leading-relaxed italic">
+          <p className="text-base sm:text-lg text-neutral-500 dark:text-neutral-400 font-medium leading-relaxed italic">
             {excerpt}
           </p>
 
-          {/* Yazar profili ve yayınlanma tarihi */}
           <div className="flex flex-wrap items-center justify-between gap-4 pt-4">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-full bg-neutral-200 flex items-center justify-center font-bold text-sm text-neutral-700 border border-neutral-300 uppercase shadow-inner">
+              <div className="w-11 h-11 rounded-full bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center font-bold text-sm text-neutral-700 dark:text-neutral-300 border border-neutral-300 dark:border-neutral-700 uppercase shadow-inner">
                 {author ? author.charAt(0) : "B"}
               </div>
               <div>
-                <p className="text-sm font-bold text-neutral-800">{author || "Bilsoft Editör"}</p>
-                <p className="text-[11px] text-neutral-400 font-semibold tracking-wider uppercase">Editör</p>
+                <p className="text-sm font-bold text-neutral-800 dark:text-neutral-200">{author || "Bilsoft Editör"}</p>
+                <p className="text-[11px] text-neutral-400 dark:text-neutral-500 font-semibold tracking-wider uppercase">Editör</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-6 text-xs text-neutral-400 font-medium">
+            <div className="flex items-center gap-6 text-xs text-neutral-400 dark:text-neutral-500 font-medium">
               <span className="flex items-center gap-1.5">
-                <svg className="w-4 h-4 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-neutral-400 dark:text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
                 {new Date(date).toLocaleDateString("tr-TR", {
@@ -128,7 +121,7 @@ export default function BlogPost({ postData }) {
                 })}
               </span>
               <span className="flex items-center gap-1.5">
-                <svg className="w-4 h-4 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-neutral-400 dark:text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 {readTime || "3 dk okuma"}
@@ -137,18 +130,18 @@ export default function BlogPost({ postData }) {
           </div>
         </header>
 
-        {/* Yazının gövde içeriği (dangerouslySetInnerHTML ile HTML'e çevrilmiş markdown) */}
+        {/* dangerouslySetInnerHTML: İşlenmiş olan Markdown HTML içeriğini sayfaya güvenli bir şekilde basar. */}
         <section 
-          className="prose max-w-none text-neutral-700 font-normal"
+          className="prose max-w-none text-neutral-700 dark:text-neutral-300 font-normal"
           dangerouslySetInnerHTML={{ __html: contentHtml }}
         />
 
         {/* Etiketler listesi */}
         {tags && tags.length > 0 && (
-          <div className="mt-12 pt-6 border-t border-neutral-200 flex flex-wrap items-center gap-2">
-            <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider mr-2">Etiketler:</span>
+          <div className="mt-12 pt-6 border-t border-neutral-200 dark:border-neutral-800 flex flex-wrap items-center gap-2">
+            <span className="text-xs font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider mr-2">Etiketler:</span>
             {tags.map((tag) => (
-              <span key={tag} className="text-xs font-semibold bg-neutral-100 text-neutral-600 px-3 py-1.5 rounded-lg border border-neutral-200">
+              <span key={tag} className="text-xs font-semibold bg-neutral-100 dark:bg-neutral-850 text-neutral-600 dark:text-neutral-300 px-3 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-750">
                 #{tag}
               </span>
             ))}
@@ -156,19 +149,18 @@ export default function BlogPost({ postData }) {
         )}
 
         {/* Sosyal medya paylaşım butonları */}
-        <div className="mt-8 p-6 bg-neutral-50 rounded-2xl border border-neutral-200/80 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div className="mt-8 p-6 bg-neutral-50 dark:bg-neutral-900 rounded-2xl border border-neutral-200/80 dark:border-neutral-800 flex flex-col sm:flex-row justify-between items-center gap-4">
           <div>
-            <h4 className="text-sm font-bold text-neutral-800">Bu içeriği beğendiniz mi?</h4>
-            <p className="text-xs text-neutral-500 mt-1">Sosyal ağlarda paylaşarak diğer işletmelerin de faydalanmasını sağlayabilirsiniz.</p>
+            <h4 className="text-sm font-bold text-neutral-800 dark:text-neutral-200">Bu içeriği beğendiniz mi?</h4>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">Sosyal ağlarda paylaşarak diğer işletmelerin de faydalanmasını sağlayabilirsiniz.</p>
           </div>
           
           <div className="flex flex-wrap items-center gap-3">
-            {/* Twitter'da paylaş */}
             <a 
               href={`https://twitter.com/intent/tweet?url=${pageUrl}&text=${shareText}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2.5 bg-white border border-neutral-200 rounded-xl text-neutral-600 hover:text-brand-blue hover:border-brand-blue transition-all"
+              className="p-2.5 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-600 dark:text-neutral-300 hover:text-brand-blue dark:hover:text-brand-orange hover:border-brand-blue dark:hover:border-brand-orange transition-all"
               title="Twitter'da Paylaş"
             >
               <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
@@ -176,12 +168,11 @@ export default function BlogPost({ postData }) {
               </svg>
             </a>
 
-            {/* Facebook'ta paylaş */}
             <a 
               href={`https://www.facebook.com/sharer/sharer.php?u=${pageUrl}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2.5 bg-white border border-neutral-200 rounded-xl text-neutral-600 hover:text-brand-blue hover:border-brand-blue transition-all"
+              className="p-2.5 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-600 dark:text-neutral-300 hover:text-brand-blue dark:hover:text-brand-orange hover:border-brand-blue dark:hover:border-brand-orange transition-all"
               title="Facebook'ta Paylaş"
             >
               <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
@@ -189,12 +180,11 @@ export default function BlogPost({ postData }) {
               </svg>
             </a>
 
-            {/* LinkedIn'de paylaş */}
             <a 
               href={`https://www.linkedin.com/sharing/share-offsite/?url=${pageUrl}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2.5 bg-white border border-neutral-200 rounded-xl text-neutral-600 hover:text-brand-blue hover:border-brand-blue transition-all"
+              className="p-2.5 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-600 dark:text-neutral-300 hover:text-brand-blue dark:hover:text-brand-orange hover:border-brand-blue dark:hover:border-brand-orange transition-all"
               title="LinkedIn'da Paylaş"
             >
               <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
@@ -202,10 +192,9 @@ export default function BlogPost({ postData }) {
               </svg>
             </a>
 
-            {/* Linki panoya kopyala */}
             <button 
               onClick={copyLinkToClipboard}
-              className="p-2.5 bg-white border border-neutral-200 rounded-xl text-neutral-600 hover:text-brand-blue hover:border-brand-blue cursor-pointer transition-all"
+              className="p-2.5 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-600 dark:text-neutral-300 hover:text-brand-blue dark:hover:text-brand-orange hover:border-brand-blue dark:hover:border-brand-orange cursor-pointer transition-all"
               title="Bağlantıyı Kopyala"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

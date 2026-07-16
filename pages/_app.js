@@ -1,7 +1,7 @@
 import "@/styles/globals.css";
 import { Montserrat } from "next/font/google";
 
-// Kurumsal font olarak Montserrat seçtik, Türkçe karakterler bozulmasın diye latin-ext ekledim.
+// Montserrat yazı tipini projeye dahil ediyoruz. 'subsets' ayarı ile Türkçe karakterlerin bozulmasını önlüyoruz.
 const montserrat = Montserrat({
   subsets: ["latin", "latin-ext"],
   weight: ["300", "400", "500", "600", "700", "800"],
@@ -10,8 +10,9 @@ const montserrat = Montserrat({
 
 export default function App({ Component, pageProps }) {
   return (
-    // font-sans class'ını ekleyerek tüm sitenin bu fontu kullanmasını sağladım.
-    <main className={`${montserrat.variable} font-sans min-h-screen bg-neutral-50 text-neutral-800`}>
+    // Montserrat yazı tipini tüm sayfalar için varsayılan yapıyoruz.
+    // dark:bg-neutral-950 ve dark:text-neutral-100 sınıfları karanlık modda arka plan ve metin renklerini ayarlar.
+    <main className={`${montserrat.variable} font-sans min-h-screen bg-neutral-50 text-neutral-800 dark:bg-neutral-950 dark:text-neutral-100 transition-colors duration-300`}>
       <Component {...pageProps} />
     </main>
   );
